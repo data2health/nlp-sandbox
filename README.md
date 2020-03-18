@@ -45,7 +45,7 @@ TODO (example: Systematic scoping review manuscript)
 Resource | Link | Site
 ----------|--------------|--------------|
 GitHub team | [nlp-team](https://github.com/orgs/data2health/teams/nlp-team) | CD2H
-GitHub project | [Link](https://github.com/orgs/data2health/projects/7) | CD2H
+GitHub project | [data2health/projects/7](https://github.com/orgs/data2health/projects/7) | CD2H
 Google Folder | [NLP Sandbox](https://drive.google.com/drive/folders/1PpFItk7GNvIjbidFNiDHmOn7NHEbpHle) | Sage Bionetworks
 Slack channel | [CD2H workspace / nlp-sandbox](https://app.slack.com/client/T4SPTQGE7/C010044EGTW) | CD2H
 
