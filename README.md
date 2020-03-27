@@ -35,6 +35,9 @@ Thomas Schaffter (@tschaffter) | Sage Bionetworks
 Yao Yan (@yy6linda) | Sage Bionetworks
 James Eddy (@jaeddy) | Sage Bionetworks
 Justin Guinney (@jguinney) | Sage Bionetworks
+Tom Dillon (@tmdillon) | WashU
+Bradley Taylor (@BradleyTaylor) | MCW
+George Kowalski (@gkowalski) | MCW
 
 ## Deliverables
 
