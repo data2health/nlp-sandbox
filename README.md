@@ -30,7 +30,7 @@ James Eddy (@jaeddy) | Sage Bionetworks
 
 ## Team members
 
-Members (github handle) | Site
+Members | Site
 ----------|--------------|
 Thomas Schaffter (@tschaffter) | Sage Bionetworks
 Yao Yan (@yy6linda) | Sage Bionetworks
