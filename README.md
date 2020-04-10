@@ -1,9 +1,9 @@
 # nlp-sandbox
 
+Developing a continuous benchmarking envrionment for NLP de-id methods.
+
 ## Problem statement
 
-- Sandbox with NLP methods?
-- Platform for benchmarking NLP methods?
 
 ## Project description
 
@@ -15,17 +15,18 @@ TODO (example: see [here](https://github.com/data2health/roadmap/blob/master/cd2
 
 ## Contact person
 
-Point person (github handle) | Site | Program Director
+Point person | Site | Program Director
 ----------|--------------|---------------
-XXX | XXX | Melissa Haendel (@mellybelly)
+Justin Guinney (@jguinney) | Sage Bionetworks | Melissa Haendel (@mellybelly)
 
 ## Leads
 
 Project scientific leadership, should be 1-3 persons.
 
-Lead(s) (github handle) | Site
+Lead(s) | Site
 ----------|--------------|
-XXX | XXX
+Thomas Schaffter (@tschaffter) | Sage Bionetworks
+James Eddy (@jaeddy) | Sage Bionetworks
 
 ## Team members
 
@@ -33,11 +34,12 @@ Members (github handle) | Site
 ----------|--------------|
 Thomas Schaffter (@tschaffter) | Sage Bionetworks
 Yao Yan (@yy6linda) | Sage Bionetworks
+Yooree Chae (@yooree) | Sage Bionetworks
 James Eddy (@jaeddy) | Sage Bionetworks
 Justin Guinney (@jguinney) | Sage Bionetworks
-Tom Dillon (@tmdillon) | WashU
-Bradley Taylor (@BradleyTaylor) | MCW
 George Kowalski (@gkowalski) | MCW
+Bradley Taylor (@BradleyTaylor) | MCW
+Tom Dillon (@tmdillon) | WashU
 
 ## Deliverables
 
