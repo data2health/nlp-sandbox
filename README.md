@@ -23,7 +23,7 @@ Justin Guinney (@jguinney) | Sage Bionetworks | Melissa Haendel (@mellybelly)
 
 Project scientific leadership, should be 1-3 persons.
 
-Lead(s) (github handle) | Site
+Leads (github handle) | Site
 ----------|--------------|
 Thomas Schaffter (@tschaffter) | Sage Bionetworks
 James Eddy (@jaeddy) | Sage Bionetworks
