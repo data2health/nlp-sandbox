@@ -34,7 +34,7 @@ Members (github handle) | Site
 ----------|--------------|
 Thomas Schaffter (@tschaffter) | Sage Bionetworks
 Yao Yan (@yy6linda) | Sage Bionetworks
-Yooree Chae (@yooree) | Sage Bionetworks
+Yooree Chae (@ychae) | Sage Bionetworks
 James Eddy (@jaeddy) | Sage Bionetworks
 Justin Guinney (@jguinney) | Sage Bionetworks
 George Kowalski (@gkowalski) | MCW
