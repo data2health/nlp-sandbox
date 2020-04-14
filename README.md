@@ -38,7 +38,7 @@ Yooree Chae (@ychae) | Sage Bionetworks
 James Eddy (@jaeddy) | Sage Bionetworks
 Justin Guinney (@jguinney) | Sage Bionetworks
 George Kowalski (@gkowalski) | MCW
-Bradley Taylor (@BradleyTaylor) | MCW
+Bradley Taylor (@btaylormcw) | MCW
 Tom Dillon (@tmdillon) | WashU
 
 ## Deliverables
