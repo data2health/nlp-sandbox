@@ -64,5 +64,5 @@ We encourage the community to get involved. Please make tickets or provide comme
 
 ## References
 
-1. [NLP Sandbox - CD2H Phase III Project Proposal ](https://docs.google.com/document/d/1S8LAtfgU6OitcSbPlKhKtvFxcIYQ-2t9Pw4EYlSBpRg)
+1. [NLP Sandbox - CD2H Phase III Project Proposal](https://docs.google.com/document/d/1S8LAtfgU6OitcSbPlKhKtvFxcIYQ-2t9Pw4EYlSBpRg)
 2. https://github.com/data2health/nlp-review
