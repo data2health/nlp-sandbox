@@ -2,16 +2,22 @@
 
 Developing a continuous benchmarking envrionment for NLP de-id methods.
 
-## Problem statement
+## Project vision and values
 
+The widespread adoption of Electronic Health Records (EHRs) has enabled secondary use of EHR data for clinical research and healthcare delivery. As much of the detailed patient information is recorded in clinical narratives, unlocking information from clinical narratives and integrating such information with structured EHR data become critical for EHR-based studies. 
+PHI information in clinical narratives becomes a barrier in conducting EHR-based clinical research and sharing the research data across sites.
 
-## Project description
+## Vision
 
-TODO
+- Create a cloud-based environment that enables the systematic validation of text analytics tools to solve specific tasks (i.e. the “NLP Sandbox”). 
+- Populate the “NLP Sandbox” with appropriate reference data sets to be used in shared validation tasks.
+- Engages CTSA hubs to contribute tools and methods to the project and demonstrate their performance, reproducibility, and rigor in such a shared environment
 
-## Alignment to program objectives
+## Related Cores
 
-TODO (example: see [here](https://github.com/data2health/roadmap/blob/master/cd2h-foa.md))
+- Tools and Cloud Infrastructure
+- Next Generation Data Sharing
+- Informatics Maturity and Best Practices
 
 ## Contact person
 
@@ -34,16 +40,12 @@ Members (github handle) | Site
 ----------|--------------|
 Thomas Schaffter (@tschaffter) | Sage Bionetworks
 Yao Yan (@yy6linda) | Sage Bionetworks
-Yooree Chae (@yooree) | Sage Bionetworks
+Yooree Chae (@ychae) | Sage Bionetworks
 James Eddy (@jaeddy) | Sage Bionetworks
 Justin Guinney (@jguinney) | Sage Bionetworks
 George Kowalski (@gkowalski) | MCW
-Bradley Taylor (@BradleyTaylor) | MCW
+Bradley Taylor (@btaylormcw) | MCW
 Tom Dillon (@tmdillon) | WashU
-
-## Deliverables
-
-TODO (example: Systematic scoping review manuscript)
 
 ## Resources
 
@@ -62,4 +64,5 @@ We encourage the community to get involved. Please make tickets or provide comme
 
 ## References
 
-1. https://github.com/data2health/nlp-review
+1. [NLP Sandbox - CD2H Phase III Project Proposal](https://docs.google.com/document/d/1S8LAtfgU6OitcSbPlKhKtvFxcIYQ-2t9Pw4EYlSBpRg)
+2. https://github.com/data2health/nlp-review
