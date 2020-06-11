@@ -1,0 +1,126 @@
+---
+title: "CD2H NLP Sandbox: Remote de-id of clinical notes"
+author: "Thomas Schaffter, thomas.schaffter@sagebionetworks.org"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output: html_notebook
+---
+
+```{r}
+rm(list=ls())
+
+library(httr)
+```
+
+# Overview
+
+CD2H is developing an NLP Sandbox that enables the benchmarking of natural language processing (NLP) methods. The architecture proposed for the NLP Sandbox is available [here](https://docs.google.com/presentation/d/1qj4b7G9jMevZFMrnJY6HDYSgaOGGpEJ-RRZIT_8frPM). Upon approval, the development of this infrastructure could start in July 2020.
+
+Initially, we are targeting first the benchmarking of NLP de-identification methods. One of the deliverable of Phase III (Jan-Jun 2020) is the deployment of two NLP de-id services "as they are". The first NLP de-id method named *Cantata* is developed by the Medical College of Wisconsin (MCW). The second method is a Python package named *Philter* developed by University of California, San Francisco (UCSF), which we have exposed as a RESTful service. The codebase of this service is available on GitHub (https://github.com/data2health/philter-service).
+
+In this R notebook, we show how to send a request to Cantata and Philter to de-identify a clinical note.
+
+# Disclaimer
+
+**Never send sensitive (patient) information to a web service that you do not control!**
+
+# Example
+
+```{r}
+# A list of clinical notes to de-identify.
+clinical_notes = list(
+  note_1 = "Jay Urbain, jay.urbain@gmail.com, born December 6, 2156 is an elderly caucasian male suffering from illusions of grandeur and LBP. He is married to Kimberly Urbain, who is much better looking. Patient father, Francis Urbain has a history of CAD and DM. Jay has been prescribed meloxicam, and venti americano. He lives at 9050 N. Tennyson Dr., Disturbia, WI with his wife and golden retriever Mel. You can reach him at 414-745-5102."
+)
+```
+
+```{r}
+# A list of NLP de-id methods.
+# ---------------------------------------------------------------------------
+# In the future, all NLP de-id methods will expose the NLP Sandbox de-id API.
+methods = list(
+  mcw = list(
+    name = "mcw",
+    base_path = "http://notes-deid.cd2h.org/ctsi-mcw-deid-service",  # NCATS EC2
+    endpoints = list(
+      deid = list(
+        path = "/deid/DeidServiceServlet"
+      )
+    )
+  ),
+  philter = list(
+    name = "philter",
+    base_path = "http://ec2-100-25-33-50.compute-1.amazonaws.com:8080/v2",  # Sage EC2
+    endpoints = list(
+      deid = list(
+        path = "/deid"
+      )
+    )
+  )
+)
+```
+
+Cantata and Philter use different input and output formats. They also do not target the de-identification of the same elements. Because these methods are deployed "as they are", we need to write adapters that format their input and output for the sake of this example.
+
+```{r}
+# Helper function that formats the input clinical note before submitting it for de-identification.
+# ---------------------------------------------------------------------------
+# In the future, all NLP de-id methods will accept the same input format.
+format_clinical_note <- function(note, method) {
+  body = NULL
+  
+  if (method['name'] == "mcw") {
+    body = list(
+      dateoffset = "10",
+      name = "",
+      q = note,
+      fomat = "pretty"
+    )
+  } else if (method['name'] == "philter") {
+    body = note
+  }
+  return(body)
+}
+
+# Helper function that formats the de-id note returned by an NLP de-id method.
+# In the future, all NLP de-id methods will implement the same response format.
+format_deid_response <- function(response, method) {
+  text <- NULL
+  
+  if (method['name'] == "mcw") {
+    text <- content(response, "text", encoding = "UTF-8")
+  } else if (method['name'] == "philter") {
+    text <- content(response, "parsed")
+  }
+  return(text)
+}
+```
+
+
+```{r}
+# Clinical note to de-identify
+note <- clinical_notes$note_1
+
+# Select the NLP de-id method
+# method <- methods$mcw
+method <- methods$philter
+
+# Prepare the de-id request
+endpoint <- method$endpoints$deid
+url <- paste(method$base_path, endpoint$path, sep='')
+body <- format_clinical_note(note, method)
+
+# Submit the request
+response <- POST(url = url, body = body, encode = "form")
+
+# Show the original and de-id note
+deid_note <- format_deid_response(response, method)
+
+note
+deid_note
+```
+
+# References
+
+- [NLP Sandbox: Creating an infrastructure for continuous benchmarking of NLP methods](https://docs.google.com/presentation/d/1qj4b7G9jMevZFMrnJY6HDYSgaOGGpEJ-RRZIT_8frPM)
+- [Cantata web interface](http://notes-deid.cd2h.org/ctsi-mcw-deid-service)
+- https://github.com/data2health/philter-service
+- https://github.com/data2health/philter-ucsf
