@@ -1,0 +1,64 @@
+---
+title: "CD2H NLP Sandbox: Exploring 2014 i2b2 De-id Challenge Data"
+author: "Thomas Schaffter, thomas.schaffter@sagebionetworks.org"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output: html_notebook
+---
+
+```{r}
+rm(list=ls())
+```
+
+
+# Overview
+
+This notebook provides some insights on the content of the data of the [2014 i2b2 de-identification challenge](https://portal.dbmi.hms.harvard.edu/projects/n2c2-2014/).
+
+# Data
+
+Here are the data that we use:
+
+- Test Data: PHI Gold Set - Fixed (testing-PHI-Gold-fixed.tar.gz). Each XML file include the clinical note and the reference annotations.
+
+```{r}
+i2b2_gold_dir <- file.path("data", "testing-PHI-Gold-fixed")
+```
+
+
+```{r}
+i2b2_gold_filenames <- fs::dir_ls(i2b2_gold_dir)
+
+# Get the nodes of TAGS from all the gold files as a data frame
+annotations <- do.call("rbind", lapply(i2b2_gold_filenames, function(filename) {
+  gold <- read_xml(filename)
+  # Get the nodes of TAGS as a data frame
+  xml_find_all(gold, "//TAGS/*") %>%
+    map_dfr(~ {
+      name <- xml_name(.x) %>% enframe() %>% spread(name, value)
+      colnames(name) <- c("name")
+      attrs <- xml_attrs(.) %>% enframe() %>% spread(name, value)
+      cbind.data.frame(name, attrs) %>% set_tidy_names() %>% as_tibble() 
+    })
+}))
+
+head(annotations)
+```
+
+
+```{r}
+# Number of annotations
+nrow(annotations)
+```
+
+
+```{r}
+table(annotations$name)
+```
+
+
+```{r}
+names <- annotations[annotations$name == 'NAME',]
+table(names$TYPE)
+```
+
+
