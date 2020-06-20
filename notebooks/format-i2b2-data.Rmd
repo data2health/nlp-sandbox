@@ -1,0 +1,44 @@
+---
+title: "CD2H NLP Sandbox: Format 2014 i2b2 De-id Challenge Data"
+author: "Thomas Schaffter, thomas.schaffter@sagebionetworks.org"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output: html_notebook
+---
+
+```{r}
+rm(list=ls())
+
+# library(dplyr)
+# library(purrr)
+# library(tibble)
+# library(tidyr)
+# library(xml2)
+```
+
+# Overview
+
+This notebook read the data from the [2014 i2b2 de-identification challenge](https://portal.dbmi.hms.harvard.edu/projects/n2c2-2014/) and export them to the NLP Sandbox De-id format.
+
+# Data
+
+## Input data
+
+Here are the data that we use:
+
+- Test Data: testing-PHI-noTags (testing-PHI-noTags.tar.gz). Each XML file includes the clinical note in XML format.
+- Test Data: testing-PHI-Gold-fixed (testing-PHI-Gold-fixed.tar.gz). Each XML file includes the clinical note and the reference annotations.
+
+```{r}
+i2b2_input_dir <- file.path("data", "testing-PHI-noTags")
+i2b2_gold_dir <- file.path("data", "testing-PHI-Gold-fixed")
+```
+
+
+```{r}
+i2b2_input_filenames <- fs::dir_ls(i2b2_input_dir)
+i2b2_gold_filenames <- fs::dir_ls(i2b2_gold_dir)
+
+# Number of clinical notes in the evaluation dataset
+length(i2b2_input_filenames)
+length(i2b2_gold_filenames)
+```

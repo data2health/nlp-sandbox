@@ -15,7 +15,6 @@ library(tidyr)
 library(xml2)
 ```
 
-
 # Overview
 
 This notebook provides some insights on the content of the data of the [2014 i2b2 de-identification challenge](https://portal.dbmi.hms.harvard.edu/projects/n2c2-2014/).
