@@ -39,8 +39,6 @@ length(i2b2_gold_filenames)
 
 
 ```{r}
-
-
 # Get the nodes of TAGS from all the gold files as a data frame
 annotations <- do.call("rbind", lapply(i2b2_gold_filenames, function(filename) {
   gold <- read_xml(filename)
@@ -70,6 +68,7 @@ head(annotations)
 nrow(annotations)
 ```
 
+
 ```{r}
 # Idedntify how many clinical notes (count, %) inclue at least one instance of of a sensitive data type
 annotations %>%
@@ -79,10 +78,8 @@ annotations %>%
     notes_count = length(unique(filename)), 
     notes_percent = round(100 * length(unique(filename)) / length(unique(annotations$filename)), digits = 2)
   ) %>%
-  arrange(desc(count))
+  arrange(desc(annos_count))
 ```
-
-
 
 
 ```{r}

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Thomas Schaffter, thomas.schaffter@sagebionetworks.org" />
 
-<meta name="date" content="2020-06-20" />
+<meta name="date" content="2020-06-21" />
 
 <title>CD2H NLP Sandbox: Format 2014 i2b2 De-id Challenge Data</title>
 
@@ -224,7 +224,7 @@ summary {
 
 <h1 class="title toc-ignore">CD2H NLP Sandbox: Format 2014 i2b2 De-id Challenge Data</h1>
 <h4 class="author">Thomas Schaffter, <a href="mailto:thomas.schaffter@sagebionetworks.org">thomas.schaffter@sagebionetworks.org</a></h4>
-<h4 class="date">June 20, 2020</h4>
+<h4 class="date">June 21, 2020</h4>
 
 </div>
 
@@ -232,13 +232,11 @@ summary {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucm0obGlzdD1scygpKVxuIyBsaWJyYXJ5KGRwbHlyKVxuIyBsaWJyYXJ5KHB1cnJyKVxuIyBsaWJyYXJ5KHRpYmJsZSlcbiMgbGlicmFyeSh0aWR5cilcbiMgbGlicmFyeSh4bWwyKVxuYGBgIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucm0obGlzdD1scygpKVxubGlicmFyeShwYXJhbGxlbClcbmxpYnJhcnkocmVhZHIpXG5saWJyYXJ5KHhtbDIpXG5gYGAifQ== -->
 <pre class="r"><code>rm(list=ls())
-# library(dplyr)
-# library(purrr)
-# library(tibble)
-# library(tidyr)
-# library(xml2)</code></pre>
+library(parallel)
+library(readr)
+library(xml2)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -252,39 +250,64 @@ summary {
 <h2>Input data</h2>
 <p>Here are the data that we use:</p>
 <ul>
-<li>Test Data: testing-PHI-noTags (testing-PHI-noTags.tar.gz). Each XML file includes the clinical note in XML format.</li>
 <li>Test Data: testing-PHI-Gold-fixed (testing-PHI-Gold-fixed.tar.gz). Each XML file includes the clinical note and the reference annotations.</li>
 </ul>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaTJiMl9pbnB1dF9kaXIgPC0gZmlsZS5wYXRoKFwiZGF0YVwiLCBcInRlc3RpbmctUEhJLW5vVGFnc1wiKVxuaTJiMl9nb2xkX2RpciA8LSBmaWxlLnBhdGgoXCJkYXRhXCIsIFwidGVzdGluZy1QSEktR29sZC1maXhlZFwiKVxuYGBgIn0= -->
-<pre class="r"><code>i2b2_input_dir &lt;- file.path(&quot;data&quot;, &quot;testing-PHI-noTags&quot;)
-i2b2_gold_dir &lt;- file.path(&quot;data&quot;, &quot;testing-PHI-Gold-fixed&quot;)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaTJiMl9nb2xkX2RpciA8LSBmaWxlLnBhdGgoXCJkYXRhXCIsIFwidGVzdGluZy1QSEktR29sZC1maXhlZFwiKVxuIyBXaGVyZSBjbGluaWNhbCBub3RlcyBpbiB0ZXh0IGZvcm1hdCB3aWxsIGJlIHNhdmVkXG5pMmIyX2lucHV0X3R4dF9kaXIgPC0gZmlsZS5wYXRoKFwiZGF0YVwiLCBcImkyYjJfbm90ZXNfdHh0XCIpXG5gYGAifQ== -->
+<pre class="r"><code>i2b2_gold_dir &lt;- file.path(&quot;data&quot;, &quot;testing-PHI-Gold-fixed&quot;)
+# Where clinical notes in text format will be saved
+i2b2_input_txt_dir &lt;- file.path(&quot;data&quot;, &quot;i2b2_notes_txt&quot;)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaTJiMl9pbnB1dF9maWxlbmFtZXMgPC0gZnM6OmRpcl9scyhpMmIyX2lucHV0X2RpcilcbmkyYjJfZ29sZF9maWxlbmFtZXMgPC0gZnM6OmRpcl9scyhpMmIyX2dvbGRfZGlyKVxuIyBOdW1iZXIgb2YgY2xpbmljYWwgbm90ZXMgaW4gdGhlIGV2YWx1YXRpb24gZGF0YXNldFxubGVuZ3RoKGkyYjJfaW5wdXRfZmlsZW5hbWVzKVxuYGBgIn0= -->
-<pre class="r"><code>i2b2_input_filenames &lt;- fs::dir_ls(i2b2_input_dir)
-i2b2_gold_filenames &lt;- fs::dir_ls(i2b2_gold_dir)
-# Number of clinical notes in the evaluation dataset
-length(i2b2_input_filenames)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaTJiMl9nb2xkX2ZpbGVuYW1lcyA8LSBmczo6ZGlyX2xzKGkyYjJfZ29sZF9kaXIsIGdsb2IgPSBcIioueG1sXCIpXG5gYGAifQ== -->
+<pre class="r"><code>i2b2_gold_filenames &lt;- fs::dir_ls(i2b2_gold_dir, glob = &quot;*.xml&quot;)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDUxNFxuIn0= -->
-<pre><code>[1] 514</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGVuZ3RoKGkyYjJfZ29sZF9maWxlbmFtZXMpXG5gYGAifQ== -->
-<pre class="r"><code>length(i2b2_gold_filenames)</code></pre>
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDcmVhdGUgb3V0cHV0IGRpcmVjdG9yeVxuZnM6OmRpcl9jcmVhdGUoaTJiMl9pbnB1dF90eHRfZGlyLCByZWN1cnNlID0gVFJVRSlcbiMgRXh0cmFjdCB0aGUgdGV4dCBvZiB0aGUgY2xpbmljYWwgbm90ZSBmcm9tIHRoZSBnb2xkIHN0YW5kYXJkIGZpbGVzLlxuIyBUcmltIHRoZSBlbXB0eSBsaW5lcyBiZWZvcmUgYW5kIGFmdGVyIHRoZSBjb250ZW50Llxubm90ZV90eHRfZmlsZW5hbWVzIDwtIGRvLmNhbGwoYywgbGFwcGx5KGkyYjJfZ29sZF9maWxlbmFtZXMsIGZ1bmN0aW9uKGZpbGVuYW1lKSB7XG4gICMgZmlsZW5hbWUgPC0gXCJkYXRhL3Rlc3RpbmctUEhJLUdvbGQtZml4ZWQvMTEwLTAxLnhtbFwiXG4gIFxuICAjIFJlYWQgdGhlIGNsaW5pY2FsIG5vdGUgaW4gWE1MIGZvcm1hdFxuICBub3RlX3htbF9kb2MgPC0gcmVhZF94bWwoZmlsZW5hbWUsIG9wdGlvbnMgPSBcIk5PQ0RBVEFcIilcbiAgIyBFeHRyYWN0IHRoZSBub3RlIHRleHQsIHRyaW0gdGhlIGVtcHR5IGxpbmVzIGJlZm9yZSBhbmQgYWZ0ZXIgdGhlIGNvbnRlbnRcbiAgbm90ZV90ZXh0IDwtIHhtbF90ZXh0KHhtbF9maW5kX2FsbChub3RlX3htbF9kb2MsIFwiLy9URVhUXCIpLCB0cmltID0gVFJVRSlcbiAgXG4gIG91dF9maWxlbmFtZSA8LSBmczo6cGF0aChcbiAgICBpMmIyX2lucHV0X3R4dF9kaXIsIGdzdWIoXCJcXFxcLnhtbCRcIixcIlwiLCBiYXNlbmFtZShmaWxlbmFtZSkpLCBcbiAgICBleHQgPSBcInR4dFwiXG4gIClcbiAgIyBTYXZlIG5vdGUgaW4gdGV4dCBmb3JtYXRcbiAgZnM6OmZpbGVfY3JlYXRlKHBhdGggPSBvdXRfZmlsZW5hbWUpXG4gIHJlYWRyOjp3cml0ZV9maWxlKG5vdGVfdGV4dCwgb3V0X2ZpbGVuYW1lKVxuICBcbiAgb3V0X2ZpbGVuYW1lXG59KSlcbmhlYWQobm90ZV90eHRfZmlsZW5hbWVzKVxuYGBgIn0= -->
+<pre class="r"><code># Create output directory
+fs::dir_create(i2b2_input_txt_dir, recurse = TRUE)
+# Extract the text of the clinical note from the gold standard files.
+# Trim the empty lines before and after the content.
+note_txt_filenames &lt;- do.call(c, lapply(i2b2_gold_filenames, function(filename) {
+  # filename &lt;- &quot;data/testing-PHI-Gold-fixed/110-01.xml&quot;
+  
+  # Read the clinical note in XML format
+  note_xml_doc &lt;- read_xml(filename, options = &quot;NOCDATA&quot;)
+  # Extract the note text, trim the empty lines before and after the content
+  note_text &lt;- xml_text(xml_find_all(note_xml_doc, &quot;//TEXT&quot;), trim = TRUE)
+  
+  out_filename &lt;- fs::path(
+    i2b2_input_txt_dir, gsub(&quot;\\.xml$&quot;,&quot;&quot;, basename(filename)), 
+    ext = &quot;txt&quot;
+  )
+  # Save note in text format
+  fs::file_create(path = out_filename)
+  readr::write_file(note_text, out_filename)
+  
+  out_filename
+}))
+head(note_txt_filenames)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDUxNFxuIn0= -->
-<pre><code>[1] 514</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiZGF0YS90ZXN0aW5nLVBISS1Hb2xkLWZpeGVkLzExMC0wMS54bWwgZGF0YS90ZXN0aW5nLVBISS1Hb2xkLWZpeGVkLzExMC0wMi54bWwgZGF0YS90ZXN0aW5nLVBISS1Hb2xkLWZpeGVkLzExMC0wMy54bWwgZGF0YS90ZXN0aW5nLVBISS1Hb2xkLWZpeGVkLzExMC0wNC54bWwgXG4gICAgICBcImRhdGEvaTJiMl9ub3Rlc190eHQvMTEwLTAxLnR4dFwiICAgICAgIFwiZGF0YS9pMmIyX25vdGVzX3R4dC8xMTAtMDIudHh0XCIgICAgICAgXCJkYXRhL2kyYjJfbm90ZXNfdHh0LzExMC0wMy50eHRcIiAgICAgICBcImRhdGEvaTJiMl9ub3Rlc190eHQvMTEwLTA0LnR4dFwiIFxuZGF0YS90ZXN0aW5nLVBISS1Hb2xkLWZpeGVkLzExMS0wMS54bWwgZGF0YS90ZXN0aW5nLVBISS1Hb2xkLWZpeGVkLzExMS0wMi54bWwgXG4gICAgICBcImRhdGEvaTJiMl9ub3Rlc190eHQvMTExLTAxLnR4dFwiICAgICAgIFwiZGF0YS9pMmIyX25vdGVzX3R4dC8xMTEtMDIudHh0XCIgXG4ifQ== -->
+<pre><code>data/testing-PHI-Gold-fixed/110-01.xml data/testing-PHI-Gold-fixed/110-02.xml data/testing-PHI-Gold-fixed/110-03.xml data/testing-PHI-Gold-fixed/110-04.xml 
+      &quot;data/i2b2_notes_txt/110-01.txt&quot;       &quot;data/i2b2_notes_txt/110-02.txt&quot;       &quot;data/i2b2_notes_txt/110-03.txt&quot;       &quot;data/i2b2_notes_txt/110-04.txt&quot; 
+data/testing-PHI-Gold-fixed/111-01.xml data/testing-PHI-Gold-fixed/111-02.xml 
+      &quot;data/i2b2_notes_txt/111-01.txt&quot;       &quot;data/i2b2_notes_txt/111-02.txt&quot; </code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
 </div>
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiQ0QySCBOTFAgU2FuZGJveDogRm9ybWF0IDIwMTQgaTJiMiBEZS1pZCBDaGFsbGVuZ2UgRGF0YSIKYXV0aG9yOiAiVGhvbWFzIFNjaGFmZnRlciwgdGhvbWFzLnNjaGFmZnRlckBzYWdlYmlvbmV0d29ya3Mub3JnIgpkYXRlOiAiYHIgZm9ybWF0KFN5cy5EYXRlKCksICclQiAlZCwgJVknKWAiCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCmBgYHtyfQpybShsaXN0PWxzKCkpCgojIGxpYnJhcnkoZHBseXIpCiMgbGlicmFyeShwdXJycikKIyBsaWJyYXJ5KHRpYmJsZSkKIyBsaWJyYXJ5KHRpZHlyKQojIGxpYnJhcnkoeG1sMikKYGBgCgojIE92ZXJ2aWV3CgpUaGlzIG5vdGVib29rIHJlYWQgdGhlIGRhdGEgZnJvbSB0aGUgWzIwMTQgaTJiMiBkZS1pZGVudGlmaWNhdGlvbiBjaGFsbGVuZ2VdKGh0dHBzOi8vcG9ydGFsLmRibWkuaG1zLmhhcnZhcmQuZWR1L3Byb2plY3RzL24yYzItMjAxNC8pIGFuZCBleHBvcnQgdGhlbSB0byB0aGUgTkxQIFNhbmRib3ggRGUtaWQgZm9ybWF0LgoKIyBEYXRhCgojIyBJbnB1dCBkYXRhCgpIZXJlIGFyZSB0aGUgZGF0YSB0aGF0IHdlIHVzZToKCi0gVGVzdCBEYXRhOiB0ZXN0aW5nLVBISS1ub1RhZ3MgKHRlc3RpbmctUEhJLW5vVGFncy50YXIuZ3opLiBFYWNoIFhNTCBmaWxlIGluY2x1ZGVzIHRoZSBjbGluaWNhbCBub3RlIGluIFhNTCBmb3JtYXQuCi0gVGVzdCBEYXRhOiB0ZXN0aW5nLVBISS1Hb2xkLWZpeGVkICh0ZXN0aW5nLVBISS1Hb2xkLWZpeGVkLnRhci5neikuIEVhY2ggWE1MIGZpbGUgaW5jbHVkZXMgdGhlIGNsaW5pY2FsIG5vdGUgYW5kIHRoZSByZWZlcmVuY2UgYW5ub3RhdGlvbnMuCgpgYGB7cn0KaTJiMl9pbnB1dF9kaXIgPC0gZmlsZS5wYXRoKCJkYXRhIiwgInRlc3RpbmctUEhJLW5vVGFncyIpCmkyYjJfZ29sZF9kaXIgPC0gZmlsZS5wYXRoKCJkYXRhIiwgInRlc3RpbmctUEhJLUdvbGQtZml4ZWQiKQpgYGAKCgpgYGB7cn0KaTJiMl9pbnB1dF9maWxlbmFtZXMgPC0gZnM6OmRpcl9scyhpMmIyX2lucHV0X2RpcikKaTJiMl9nb2xkX2ZpbGVuYW1lcyA8LSBmczo6ZGlyX2xzKGkyYjJfZ29sZF9kaXIpCgojIE51bWJlciBvZiBjbGluaWNhbCBub3RlcyBpbiB0aGUgZXZhbHVhdGlvbiBkYXRhc2V0Cmxlbmd0aChpMmIyX2lucHV0X2ZpbGVuYW1lcykKbGVuZ3RoKGkyYjJfZ29sZF9maWxlbmFtZXMpCmBgYAo=</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiQ0QySCBOTFAgU2FuZGJveDogRm9ybWF0IDIwMTQgaTJiMiBEZS1pZCBDaGFsbGVuZ2UgRGF0YSIKYXV0aG9yOiAiVGhvbWFzIFNjaGFmZnRlciwgdGhvbWFzLnNjaGFmZnRlckBzYWdlYmlvbmV0d29ya3Mub3JnIgpkYXRlOiAiYHIgZm9ybWF0KFN5cy5EYXRlKCksICclQiAlZCwgJVknKWAiCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCmBgYHtyfQpybShsaXN0PWxzKCkpCgpsaWJyYXJ5KHBhcmFsbGVsKQpsaWJyYXJ5KHJlYWRyKQpsaWJyYXJ5KHhtbDIpCmBgYAoKIyBPdmVydmlldwoKVGhpcyBub3RlYm9vayByZWFkIHRoZSBkYXRhIGZyb20gdGhlIFsyMDE0IGkyYjIgZGUtaWRlbnRpZmljYXRpb24gY2hhbGxlbmdlXShodHRwczovL3BvcnRhbC5kYm1pLmhtcy5oYXJ2YXJkLmVkdS9wcm9qZWN0cy9uMmMyLTIwMTQvKSBhbmQgZXhwb3J0IHRoZW0gdG8gdGhlIE5MUCBTYW5kYm94IERlLWlkIGZvcm1hdC4KCiMgRGF0YQoKIyMgSW5wdXQgZGF0YQoKSGVyZSBhcmUgdGhlIGRhdGEgdGhhdCB3ZSB1c2U6CgotIFRlc3QgRGF0YTogdGVzdGluZy1QSEktR29sZC1maXhlZCAodGVzdGluZy1QSEktR29sZC1maXhlZC50YXIuZ3opLiBFYWNoIFhNTCBmaWxlIGluY2x1ZGVzIHRoZSBjbGluaWNhbCBub3RlIGFuZCB0aGUgcmVmZXJlbmNlIGFubm90YXRpb25zLgoKYGBge3J9CmkyYjJfZ29sZF9kaXIgPC0gZmlsZS5wYXRoKCJkYXRhIiwgInRlc3RpbmctUEhJLUdvbGQtZml4ZWQiKQoKIyBXaGVyZSBjbGluaWNhbCBub3RlcyBpbiB0ZXh0IGZvcm1hdCB3aWxsIGJlIHNhdmVkCmkyYjJfaW5wdXRfdHh0X2RpciA8LSBmaWxlLnBhdGgoImRhdGEiLCAiaTJiMl9ub3Rlc190eHQiKQpgYGAKCgpgYGB7cn0KaTJiMl9nb2xkX2ZpbGVuYW1lcyA8LSBmczo6ZGlyX2xzKGkyYjJfZ29sZF9kaXIsIGdsb2IgPSAiKi54bWwiKQpgYGAKCgpgYGB7cn0KIyBDcmVhdGUgb3V0cHV0IGRpcmVjdG9yeQpmczo6ZGlyX2NyZWF0ZShpMmIyX2lucHV0X3R4dF9kaXIsIHJlY3Vyc2UgPSBUUlVFKQoKIyBFeHRyYWN0IHRoZSB0ZXh0IG9mIHRoZSBjbGluaWNhbCBub3RlIGZyb20gdGhlIGdvbGQgc3RhbmRhcmQgZmlsZXMuCiMgVHJpbSB0aGUgZW1wdHkgbGluZXMgYmVmb3JlIGFuZCBhZnRlciB0aGUgY29udGVudC4Kbm90ZV90eHRfZmlsZW5hbWVzIDwtIGRvLmNhbGwoYywgbGFwcGx5KGkyYjJfZ29sZF9maWxlbmFtZXMsIGZ1bmN0aW9uKGZpbGVuYW1lKSB7CgogICMgZmlsZW5hbWUgPC0gImRhdGEvdGVzdGluZy1QSEktR29sZC1maXhlZC8xMTAtMDEueG1sIgogIAogICMgUmVhZCB0aGUgY2xpbmljYWwgbm90ZSBpbiBYTUwgZm9ybWF0CiAgbm90ZV94bWxfZG9jIDwtIHJlYWRfeG1sKGZpbGVuYW1lLCBvcHRpb25zID0gIk5PQ0RBVEEiKQogICMgRXh0cmFjdCB0aGUgbm90ZSB0ZXh0LCB0cmltIHRoZSBlbXB0eSBsaW5lcyBiZWZvcmUgYW5kIGFmdGVyIHRoZSBjb250ZW50CiAgbm90ZV90ZXh0IDwtIHhtbF90ZXh0KHhtbF9maW5kX2FsbChub3RlX3htbF9kb2MsICIvL1RFWFQiKSwgdHJpbSA9IFRSVUUpCiAgCiAgb3V0X2ZpbGVuYW1lIDwtIGZzOjpwYXRoKAogICAgaTJiMl9pbnB1dF90eHRfZGlyLCBnc3ViKCJcXC54bWwkIiwiIiwgYmFzZW5hbWUoZmlsZW5hbWUpKSwgCiAgICBleHQgPSAidHh0IgogICkKCiAgIyBTYXZlIG5vdGUgaW4gdGV4dCBmb3JtYXQKICBmczo6ZmlsZV9jcmVhdGUocGF0aCA9IG91dF9maWxlbmFtZSkKICByZWFkcjo6d3JpdGVfZmlsZShub3RlX3RleHQsIG91dF9maWxlbmFtZSkKICAKICBvdXRfZmlsZW5hbWUKfSkpCgpoZWFkKG5vdGVfdHh0X2ZpbGVuYW1lcykKYGBgCgo=</div>
 
 
 
