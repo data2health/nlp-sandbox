@@ -29,7 +29,7 @@ Here are the data that we use:
 i2b2_gold_dir <- file.path("data", "testing-PHI-Gold-fixed")
 
 # Where clinical notes in text format will be saved
-i2b2_input_txt_dir <- file.path("data", "i2b2_notes_txt")
+i2b2_input_txt_dir <- file.path("data", "i2b2_evaluation_notes")
 ```
 
 
