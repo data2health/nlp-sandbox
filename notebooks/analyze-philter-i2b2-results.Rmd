@@ -1,0 +1,80 @@
+---
+title: "CD2H NLP Sandbox: Analyze Philter results on 2014 i2b2 De-id Challenge Data"
+author: "Thomas Schaffter, thomas.schaffter@sagebionetworks.org"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output: html_notebook
+---
+
+```{r}
+rm(list=ls())
+
+library(parallel)
+library(readr)
+library(xml2)
+```
+
+
+```{r}
+i2b2_results_dir <- file.path("data", "i2b2_evaluation_results_philter")
+
+i2b2_results_filenames <- fs::dir_ls(i2b2_results_dir, glob = "*.xml")
+```
+
+
+```{r}
+# Number of results files
+length(i2b2_results_filenames)
+
+
+```
+
+
+```{r}
+# Get the sensitive tokens identified by Philter
+annotations <- do.call("rbind", lapply(i2b2_results_filenames, function(filename) {
+  tryCatch({
+    pred <- read_xml(filename)
+    # Get the nodes of TAGS as a data frame
+    xml_find_all(pred, "//TAGS/*") %>%
+      purrr::map_dfr(~ {
+        # Get the annotation type
+        name <- xml_name(.x) %>% tibble::enframe() %>% tidyr::spread(name, value)
+        colnames(name) <- c("name")
+        # Get the property of the annotation
+        attrs <- xml_attrs(.) %>% tibble::enframe() %>% tidyr::spread(name, value)
+        # Get the filename
+        filename <- filename
+        cbind.data.frame(name, attrs, filename) %>% set_tidy_names() %>% as_tibble() 
+      }) %>%
+      dplyr::rename(
+        type = TYPE
+      )
+  }, warning = function(w) {
+    message("Unable to process file: ", filename, w)
+  }, error = function(e) {
+    message("Unable to process file: ", filename, e)
+  })
+}))
+
+head(annotations)
+```
+
+
+```{r}
+# Number of annotations
+nrow(annotations)
+```
+
+
+```{r}
+# Identify how many clinical notes (count, %) inclue at least one instance of of a sensitive data type
+annotations %>%
+  group_by(name) %>%
+  summarize(
+    annos_count = length(filename),
+    notes_count = length(unique(filename)), 
+    notes_percent = round(100 * length(unique(filename)) / length(unique(annotations$filename)), digits = 2)
+  ) %>%
+  arrange(desc(annos_count))
+```
+

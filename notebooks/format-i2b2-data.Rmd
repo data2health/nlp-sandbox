@@ -51,7 +51,7 @@ note_txt_filenames <- do.call(c, lapply(i2b2_gold_filenames, function(filename) 
   # Read the clinical note in XML format
   note_xml_doc <- read_xml(filename, options = "NOCDATA")
   # Extract the note text, trim the empty lines before and after the content
-  note_text <- xml_text(xml_find_all(note_xml_doc, "//TEXT"), trim = TRUE)
+  note_text <- xml_text(xml_find_all(note_xml_doc, "//TEXT"), trim = FALSE)
   
   out_filename <- fs::path(
     i2b2_input_txt_dir, gsub("\\.xml$","", basename(filename)), 
@@ -67,4 +67,5 @@ note_txt_filenames <- do.call(c, lapply(i2b2_gold_filenames, function(filename) 
 
 head(note_txt_filenames)
 ```
+
 

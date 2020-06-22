@@ -70,7 +70,7 @@ nrow(annotations)
 
 
 ```{r}
-# Idedntify how many clinical notes (count, %) inclue at least one instance of of a sensitive data type
+# Identify how many clinical notes (count, %) inclue at least one instance of of a sensitive data type
 annotations %>%
   group_by(name) %>%
   summarize(
@@ -79,11 +79,6 @@ annotations %>%
     notes_percent = round(100 * length(unique(filename)) / length(unique(annotations$filename)), digits = 2)
   ) %>%
   arrange(desc(annos_count))
-```
-
-
-```{r}
-table(annotations$name)
 ```
 
 
