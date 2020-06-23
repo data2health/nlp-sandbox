@@ -9,6 +9,7 @@ output: html_notebook
 rm(list=ls())
 
 library(dplyr)
+library(ggplot2)
 library(purrr)
 library(tibble)
 library(tidyr)
@@ -50,9 +51,12 @@ annotations <- do.call("rbind", lapply(i2b2_gold_filenames, function(filename) {
       colnames(name) <- c("name")
       # Get the property of the annotation
       attrs <- xml_attrs(.) %>% tibble::enframe() %>% tidyr::spread(name, value)
-      # Get the filename
-      filename <- filename
-      cbind.data.frame(name, attrs, filename) %>% set_tidy_names() %>% as_tibble() 
+      # Get patient ID from filename
+      patient_and_record_id <- strsplit(fs::path_ext_remove(fs::path_file(filename)), "-")[[1]]
+      patient_id <- patient_and_record_id[1]
+      record_id <- patient_and_record_id[2]
+      
+      cbind.data.frame(name, attrs, filename, patient_id, record_id) %>% set_tidy_names() %>% as_tibble() 
     }) %>%
     dplyr::rename(
       type = TYPE
@@ -104,4 +108,35 @@ annotations %>%
   ) %>%
   arrange(name, type, desc(annos_count))
 ```
+
+
+```{r}
+# Number of patients
+length(unique(annotations$patient_id))
+```
+
+
+```{r}
+# Number of record per patient
+records_count_data <- annotations %>%
+  select(patient_id, record_id) %>%
+  group_by(patient_id) %>%
+  summarize(
+    records_count = length(unique(record_id))
+  )
+
+records_count_data
+```
+
+
+```{r}
+# Barbplot number of patients with x records
+ggplot(as.data.frame(table(records_count_data$records_count)), aes(Var1, Freq)) + 
+  geom_bar(stat="identity", fill="steelblue") +
+  xlab("Number of records") +
+  ylab("Number of patients") +
+  ggtitle("Number of patients with x records in the\ngold standard of 2014 i2b2 NLP De-id Challenge") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
 
