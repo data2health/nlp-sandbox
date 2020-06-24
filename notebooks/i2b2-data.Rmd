@@ -68,7 +68,7 @@ get_i2b2_annotation_types <- function(annotations) {
 get_i2b2_annotation_types_and_subtypes <- function(annotations) {
   annotations %>%
     select(name, type, filename) %>%
-    group_by(name, type) %>%
+    group_by(name, type) %>%g
     summarize(
       annos_count = length(filename),
       notes_count = length(unique(filename)),
@@ -257,4 +257,31 @@ names_overlap
 length(names_overlap) / length(unique(annotations_training$name))
 length(names_overlap) / length(unique(annotations_gold$name))
 ```
+
+
+```{r}
+# Overlap of DOCTOR names between the training and gold standard sets
+names_doctor_overlap <- intersect(
+  unique(annotations_training$text[annotations_training$name == 'NAME' & annotations_training$type == 'DOCTOR']), 
+  unique(annotations_gold$text[annotations_gold$name == 'NAME' & annotations_gold$type == 'DOCTOR'])
+)
+names_doctor_overlap
+
+length(names_doctor_overlap) / length(unique(annotations_training$name[annotations_training$type == 'DOCTOR']))
+length(names_doctor_overlap) / length(unique(annotations_gold$name[annotations_gold$type == 'DOCTOR']))
+```
+
+
+```{r}
+# Overlap of PATIENT names between the training and gold standard sets
+names_patient_overlap <- intersect(
+  unique(annotations_training$text[annotations_training$name == 'NAME' & annotations_training$type == 'PATIENT']), 
+  unique(annotations_gold$text[annotations_gold$name == 'NAME' & annotations_gold$type == 'PATIENT'])
+)
+names_patient_overlap
+
+length(names_patient_overlap) / length(unique(annotations_training$name[annotations_training$type == 'PATIENT']))
+length(names_patient_overlap) / length(unique(annotations_gold$name[annotations_gold$type == 'PATIENT']))
+```
+
 
