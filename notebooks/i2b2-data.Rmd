@@ -68,7 +68,7 @@ get_i2b2_annotation_types <- function(annotations) {
 get_i2b2_annotation_types_and_subtypes <- function(annotations) {
   annotations %>%
     select(name, type, filename) %>%
-    group_by(name, type) %>%g
+    group_by(name, type) %>%
     summarize(
       annos_count = length(filename),
       notes_count = length(unique(filename)),
@@ -267,8 +267,14 @@ names_doctor_overlap <- intersect(
 )
 names_doctor_overlap
 
-length(names_doctor_overlap) / length(unique(annotations_training$name[annotations_training$type == 'DOCTOR']))
-length(names_doctor_overlap) / length(unique(annotations_gold$name[annotations_gold$type == 'DOCTOR']))
+# Number of unique ddoctor names in training and gold sets
+length(unique(annotations_training$text[annotations_training$type == 'DOCTOR']))
+length(unique(annotations_gold$text[annotations_gold$type == 'DOCTOR']))
+
+# Fraction of the unique doctor names in the training set that are also in the gold set
+length(names_doctor_overlap) / length(unique(annotations_training$text[annotations_training$type == 'DOCTOR']))
+# Fraction of the unique doctor names in the gold set that are also in the training set
+length(names_doctor_overlap) / length(unique(annotations_gold$text[annotations_gold$type == 'DOCTOR']))
 ```
 
 
@@ -280,8 +286,13 @@ names_patient_overlap <- intersect(
 )
 names_patient_overlap
 
-length(names_patient_overlap) / length(unique(annotations_training$name[annotations_training$type == 'PATIENT']))
-length(names_patient_overlap) / length(unique(annotations_gold$name[annotations_gold$type == 'PATIENT']))
-```
+# Number of unique patient names in training and gold sets
+length(unique(annotations_training$text[annotations_training$type == 'PATIENT']))
+length(unique(annotations_gold$text[annotations_gold$type == 'PATIENT']))
 
+# Fraction of the unique patient names in the training set that are also in the gold set
+length(names_patient_overlap) / length(unique(annotations_training$text[annotations_training$type == 'PATIENT']))
+# Fraction of the unique patient names in the gold set that are also in the training set
+length(names_patient_overlap) / length(unique(annotations_gold$text[annotations_gold$type == 'PATIENT']))
+```
 
