@@ -287,12 +287,12 @@ names_patient_overlap <- intersect(
 names_patient_overlap
 
 # Number of unique patient names in training and gold sets
-length(unique(annotations_training$text[annotations_training$type == 'PATIENT']))
-length(unique(annotations_gold$text[annotations_gold$type == 'PATIENT']))
+dplyr::n_distinct(annotations_training$text[annotations_training$type == 'PATIENT'])
+dplyr::n_distinct(annotations_gold$text[annotations_gold$type == 'PATIENT'])
 
 # Fraction of the unique patient names in the training set that are also in the gold set
-length(names_patient_overlap) / length(unique(annotations_training$text[annotations_training$type == 'PATIENT']))
+length(names_patient_overlap) / dplyr::n_distinct(annotations_training$text[annotations_training$type == 'PATIENT'])
 # Fraction of the unique patient names in the gold set that are also in the training set
-length(names_patient_overlap) / length(unique(annotations_gold$text[annotations_gold$type == 'PATIENT']))
+length(names_patient_overlap) / dplyr::n_distinct(annotations_gold$text[annotations_gold$type == 'PATIENT'])
 ```
 
