@@ -254,8 +254,8 @@ names_overlap
 
 ```{r}
 # Fraction of names overlap in the training and gold standard sets
-length(names_overlap) / length(unique(annotations_training$name))
-length(names_overlap) / length(unique(annotations_gold$name))
+length(names_overlap) / length(unique(annotations_training$text))
+length(names_overlap) / length(unique(annotations_gold$text))
 ```
 
 
@@ -266,6 +266,7 @@ names_doctor_overlap <- intersect(
   unique(annotations_gold$text[annotations_gold$name == 'NAME' & annotations_gold$type == 'DOCTOR'])
 )
 names_doctor_overlap
+length(names_doctor_overlap)
 
 # Number of unique ddoctor names in training and gold sets
 length(unique(annotations_training$text[annotations_training$type == 'DOCTOR']))
@@ -285,6 +286,7 @@ names_patient_overlap <- intersect(
   unique(annotations_gold$text[annotations_gold$name == 'NAME' & annotations_gold$type == 'PATIENT'])
 )
 names_patient_overlap
+length(names_patient_overlap)
 
 # Number of unique patient names in training and gold sets
 dplyr::n_distinct(annotations_training$text[annotations_training$type == 'PATIENT'])
