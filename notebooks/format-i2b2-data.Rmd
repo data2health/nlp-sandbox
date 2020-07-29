@@ -8,11 +8,9 @@ output: html_notebook
 ```{r}
 rm(list=ls())
 
-# library(dplyr)
-# library(purrr)
-# library(tibble)
-# library(tidyr)
-# library(xml2)
+library(parallel)
+library(readr)
+library(xml2)
 ```
 
 # Overview
@@ -25,20 +23,49 @@ This notebook read the data from the [2014 i2b2 de-identification challenge](htt
 
 Here are the data that we use:
 
-- Test Data: testing-PHI-noTags (testing-PHI-noTags.tar.gz). Each XML file includes the clinical note in XML format.
 - Test Data: testing-PHI-Gold-fixed (testing-PHI-Gold-fixed.tar.gz). Each XML file includes the clinical note and the reference annotations.
 
 ```{r}
-i2b2_input_dir <- file.path("data", "testing-PHI-noTags")
 i2b2_gold_dir <- file.path("data", "testing-PHI-Gold-fixed")
+
+# Where clinical notes in text format will be saved
+i2b2_input_txt_dir <- file.path("data", "i2b2_evaluation_notes")
 ```
 
 
 ```{r}
-i2b2_input_filenames <- fs::dir_ls(i2b2_input_dir)
-i2b2_gold_filenames <- fs::dir_ls(i2b2_gold_dir)
-
-# Number of clinical notes in the evaluation dataset
-length(i2b2_input_filenames)
-length(i2b2_gold_filenames)
+i2b2_gold_filenames <- fs::dir_ls(i2b2_gold_dir, glob = "*.xml")
 ```
+
+
+```{r}
+# Create output directory
+fs::dir_create(i2b2_input_txt_dir, recurse = TRUE)
+
+# Extract the text of the clinical note from the gold standard files.
+# Trim the empty lines before and after the content.
+note_txt_filenames <- do.call(c, lapply(i2b2_gold_filenames, function(filename) {
+
+  # filename <- "data/testing-PHI-Gold-fixed/110-01.xml"
+  
+  # Read the clinical note in XML format
+  note_xml_doc <- read_xml(filename, options = "NOCDATA")
+  # Extract the note text, trim the empty lines before and after the content
+  note_text <- xml_text(xml_find_all(note_xml_doc, "//TEXT"), trim = FALSE)
+  
+  out_filename <- fs::path(
+    i2b2_input_txt_dir, gsub("\\.xml$","", basename(filename)), 
+    ext = "txt"
+  )
+
+  # Save note in text format
+  fs::file_create(path = out_filename)
+  readr::write_file(note_text, out_filename)
+  
+  out_filename
+}))
+
+head(note_txt_filenames)
+```
+
+

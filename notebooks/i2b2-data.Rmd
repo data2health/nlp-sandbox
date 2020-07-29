@@ -9,6 +9,7 @@ output: html_notebook
 rm(list=ls())
 
 library(dplyr)
+library(ggplot2)
 library(purrr)
 library(tibble)
 library(tidyr)
@@ -19,7 +20,75 @@ library(xml2)
 
 This notebook provides some insights on the content of the data of the [2014 i2b2 de-identification challenge](https://portal.dbmi.hms.harvard.edu/projects/n2c2-2014/).
 
-# Data
+# Functions
+
+
+```{r}
+# Extracts the annotations contained in <TAGS> for the specified i2b2 training or gold standard files.
+extract_i2b2_annotations <- function(filenames) {
+  annotations <- do.call("rbind", lapply(filenames, function(filename) {
+    gold <- read_xml(filename)
+    # Get the nodes of TAGS as a data frame
+    xml_find_all(gold, "//TAGS/*") %>%
+      purrr::map_dfr(~ {
+        # Get the annotation type
+        name <- xml_name(.x) %>% tibble::enframe() %>% tidyr::spread(name, value)
+        colnames(name) <- c("name")
+        # Get the property of the annotation
+        attrs <- xml_attrs(.) %>% tibble::enframe() %>% tidyr::spread(name, value)
+        # Get patient ID from filename
+        patient_and_record_id <- strsplit(fs::path_ext_remove(fs::path_file(filename)), "-")[[1]]
+        patient_id <- patient_and_record_id[1]
+        record_id <- patient_and_record_id[2]
+        
+        cbind.data.frame(name, attrs, filename, patient_id, record_id) %>% set_tidy_names() %>% as_tibble() 
+      }) %>%
+      dplyr::rename(
+        type = TYPE
+      )
+  }))
+}
+
+# Returns a data frame that includes the number of annotations per annotation types,
+# and the number and percent of clinical notes that include each annotation types.
+get_i2b2_annotation_types <- function(annotations) {
+  annotations %>%
+    group_by(name) %>%
+    summarize(
+      annos_count = length(filename),
+      notes_count = length(unique(filename)), 
+      notes_percent = round(100 * length(unique(filename)) / length(unique(annotations$filename)), digits = 2)
+    ) %>%
+    arrange(desc(annos_count))
+}
+
+# Returns a data frame that includes the number of annotations per annotation types
+# and sub-types, and the number and percent of clinical notes that include each 
+# annotation types.
+get_i2b2_annotation_types_and_subtypes <- function(annotations) {
+  annotations %>%
+    select(name, type, filename) %>%
+    group_by(name, type) %>%
+    summarize(
+      annos_count = length(filename),
+      notes_count = length(unique(filename)),
+      notes_percent = round(100 * length(unique(filename)) / length(unique(annotations$filename)), digits = 2)
+    ) %>%
+    arrange(name, type, desc(annos_count))
+}
+
+# Number of record per patient
+get_i2b2_num_patients_and_records <- function(annotations) {
+  annotations %>%
+    select(patient_id, record_id) %>%
+    group_by(patient_id) %>%
+    summarize(
+      records_count = length(unique(record_id))
+    )
+}
+```
+
+# Gold standard
 
 Here are the data that we use:
 
@@ -39,77 +108,193 @@ length(i2b2_gold_filenames)
 
 
 ```{r}
-
-
-# Get the nodes of TAGS from all the gold files as a data frame
-annotations <- do.call("rbind", lapply(i2b2_gold_filenames, function(filename) {
-  gold <- read_xml(filename)
-  # Get the nodes of TAGS as a data frame
-  xml_find_all(gold, "//TAGS/*") %>%
-    purrr::map_dfr(~ {
-      # Get the annotation type
-      name <- xml_name(.x) %>% tibble::enframe() %>% tidyr::spread(name, value)
-      colnames(name) <- c("name")
-      # Get the property of the annotation
-      attrs <- xml_attrs(.) %>% tibble::enframe() %>% tidyr::spread(name, value)
-      # Get the filename
-      filename <- filename
-      cbind.data.frame(name, attrs, filename) %>% set_tidy_names() %>% as_tibble() 
-    }) %>%
-    dplyr::rename(
-      type = TYPE
-    )
-}))
-
-head(annotations)
+# Extract annotations from gold standard files
+annotations_gold <- extract_i2b2_annotations(i2b2_gold_filenames)
+head(annotations_gold)
 ```
 
 
 ```{r}
 # Number of annotations
-nrow(annotations)
-```
-
-```{r}
-# Idedntify how many clinical notes (count, %) inclue at least one instance of of a sensitive data type
-annotations %>%
-  group_by(name) %>%
-  summarize(
-    annos_count = length(filename),
-    notes_count = length(unique(filename)), 
-    notes_percent = round(100 * length(unique(filename)) / length(unique(annotations$filename)), digits = 2)
-  ) %>%
-  arrange(desc(count))
-```
-
-
-
-
-```{r}
-table(annotations$name)
+nrow(annotations_gold)
 ```
 
 
 ```{r}
-names <- annotations[annotations$name == 'NAME',]
-table(names$type)
+get_i2b2_annotation_types(annotations_gold)
 ```
 
 
 ```{r}
-names
+names_gold <- annotations_gold[annotations_gold$name == 'NAME',]
+table(names_gold$type)
+```
+
+
+```{r}
+names_gold
 ```
 
 
 ```{r rows.print=30}
-annotations %>%
-  select(name, type, filename) %>%
-  group_by(name, type) %>%
-  summarize(
-    annos_count = length(filename),
-    notes_count = length(unique(filename)),
-    notes_percent = round(100 * length(unique(filename)) / length(unique(annotations$filename)), digits = 2)
-  ) %>%
-  arrange(name, type, desc(annos_count))
+get_i2b2_annotation_types_and_subtypes(annotations_gold)
+```
+
+
+```{r}
+# Number of patients
+length(unique(annotations_gold$patient_id))
+```
+
+
+```{r}
+# Number of record per patient
+records_count_data_gold <- get_i2b2_num_patients_and_records(annotations_gold)
+```
+
+
+```{r}
+# Barbplot number of patients with x records
+ggplot(as.data.frame(table(records_count_data_gold$records_count)), aes(Var1, Freq)) + 
+  geom_bar(stat="identity", fill="steelblue") +
+  xlab("Number of records") +
+  ylab("Number of patients") +
+  ggtitle("Number of patients with x records in the\ngold standard of 2014 i2b2 NLP De-id Challenge") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+# Training Datasets
+
+The training dataset has been released as two parts.
+
+```{r}
+i2b2_training_dirs <- c(file.path("data", "training-PHI-Gold-Set1"), file.path("data", "training-PHI-Gold-Set2"))
+```
+
+
+```{r}
+i2b2_training_filenames <- fs::dir_ls(i2b2_training_dirs)
+```
+
+
+```{r}
+# Extract annotations from training standard files
+annotations_training <- extract_i2b2_annotations(i2b2_training_filenames)
+head(annotations_training)
+```
+
+
+```{r}
+# Number of annotations
+nrow(annotations_training)
+```
+
+
+```{r}
+get_i2b2_annotation_types(annotations_training)
+```
+
+```{r}
+names_training <- annotations_training[annotations_training$name == 'NAME',]
+table(names_training$type)
+```
+
+
+```{r}
+names_training
+```
+
+
+```{r rows.print=30}
+get_i2b2_annotation_types_and_subtypes(annotations_training)
+```
+
+
+```{r}
+# Number of patients
+length(unique(annotations_training$patient_id))
+```
+
+
+```{r}
+# Number of record per patient
+records_count_data_training <- get_i2b2_num_patients_and_records(annotations_training)
+```
+
+
+```{r}
+# Barbplot number of patients with x records
+ggplot(as.data.frame(table(records_count_data_training$records_count)), aes(Var1, Freq)) + 
+  geom_bar(stat="identity", fill="steelblue") +
+  xlab("Number of records") +
+  ylab("Number of patients") +
+  ggtitle("Number of patients with x records in the\ntraining set of 2014 i2b2 NLP De-id Challenge") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+# Overlap of patient ids between the training and gold standard sets
+intersect(
+  unique(annotations_training$patient_id), 
+  unique(annotations_gold$patient_id)
+)
+```
+
+
+```{r}
+# Overlap of names between the training and gold standard sets
+names_overlap <- intersect(
+  unique(annotations_training$text[annotations_training$name == 'NAME']), 
+  unique(annotations_gold$text[annotations_gold$name == 'NAME'])
+)
+names_overlap
+```
+
+
+```{r}
+# Fraction of names overlap in the training and gold standard sets
+length(names_overlap) / length(unique(annotations_training$text))
+length(names_overlap) / length(unique(annotations_gold$text))
+```
+
+
+```{r}
+# Overlap of DOCTOR names between the training and gold standard sets
+names_doctor_overlap <- intersect(
+  unique(annotations_training$text[annotations_training$name == 'NAME' & annotations_training$type == 'DOCTOR']), 
+  unique(annotations_gold$text[annotations_gold$name == 'NAME' & annotations_gold$type == 'DOCTOR'])
+)
+names_doctor_overlap
+length(names_doctor_overlap)
+
+# Number of unique ddoctor names in training and gold sets
+length(unique(annotations_training$text[annotations_training$type == 'DOCTOR']))
+length(unique(annotations_gold$text[annotations_gold$type == 'DOCTOR']))
+
+# Fraction of the unique doctor names in the training set that are also in the gold set
+length(names_doctor_overlap) / length(unique(annotations_training$text[annotations_training$type == 'DOCTOR']))
+# Fraction of the unique doctor names in the gold set that are also in the training set
+length(names_doctor_overlap) / length(unique(annotations_gold$text[annotations_gold$type == 'DOCTOR']))
+```
+
+
+```{r}
+# Overlap of PATIENT names between the training and gold standard sets
+names_patient_overlap <- intersect(
+  unique(annotations_training$text[annotations_training$name == 'NAME' & annotations_training$type == 'PATIENT']), 
+  unique(annotations_gold$text[annotations_gold$name == 'NAME' & annotations_gold$type == 'PATIENT'])
+)
+names_patient_overlap
+length(names_patient_overlap)
+
+# Number of unique patient names in training and gold sets
+dplyr::n_distinct(annotations_training$text[annotations_training$type == 'PATIENT'])
+dplyr::n_distinct(annotations_gold$text[annotations_gold$type == 'PATIENT'])
+
+# Fraction of the unique patient names in the training set that are also in the gold set
+length(names_patient_overlap) / dplyr::n_distinct(annotations_training$text[annotations_training$type == 'PATIENT'])
+# Fraction of the unique patient names in the gold set that are also in the training set
+length(names_patient_overlap) / dplyr::n_distinct(annotations_gold$text[annotations_gold$type == 'PATIENT'])
 ```
 
